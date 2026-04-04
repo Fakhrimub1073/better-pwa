@@ -3,6 +3,7 @@
   "version": "1.0.1",
   "private": true,
   "type": "module",
+  "description": "Production-grade PWA runtime — state engine, offline queue, SW builder, manifest, and framework adapters",
   "workspaces": [
     "packages/*"
   ],
@@ -18,13 +19,15 @@
     "changeset": "node scripts/new-changeset.js",
     "release": "node scripts/release.js",
     "release:dry-run": "node scripts/release.js --dry-run",
-    "typecheck": "tsc --noEmit -p packages/core/tsconfig.json && tsc --noEmit -p packages/offline/tsconfig.json && tsc --noEmit -p packages/storage/tsconfig.json && tsc --noEmit -p packages/sw-builder/tsconfig.json && tsc --noEmit -p packages/manifest/tsconfig.json"
+    "typecheck": "tsc --noEmit -p packages/core/tsconfig.json && tsc --noEmit -p packages/offline/tsconfig.json && tsc --noEmit -p packages/storage/tsconfig.json && tsc --noEmit -p packages/sw-builder/tsconfig.json && tsc --noEmit -p packages/manifest/tsconfig.json",
+    "docs:dev": "npx @11ty/eleventy --config=.eleventy.js --serve",
+    "docs:build": "npx @11ty/eleventy --config=.eleventy.js"
   },
   "devDependencies": {
-    "@better-logger/core": "^1.0.1",
+    "@better-logger/core": "^1.0.0",
     "@eslint/js": "^9.39.0",
     "@vitest/coverage-v8": "^4.0.0",
-    "broadcastchannel-polyfill": "^1.0.1",
+    "broadcastchannel-polyfill": "^1.0.0",
     "eslint": "^9.39.0",
     "fake-indexeddb": "^6.0.0",
     "jsdom": "^28.0.0",
@@ -35,5 +38,11 @@
   },
   "engines": {
     "node": ">=20"
-  }
+  },
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/0xMilord/better-pwa"
+  },
+  "author": "0xmilord <0xmilorddraws@gmail.com>"
 }

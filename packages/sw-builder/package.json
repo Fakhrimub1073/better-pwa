@@ -1,44 +1,37 @@
 {
   "name": "@better-pwa/sw-builder",
   "version": "1.0.1",
-  "description": "Config-driven service worker generation with precaching and cache strategies",
+  "description": "Config-driven service worker generation with Workbox-based precaching and runtime caching strategies",
   "type": "module",
   "main": "./dist/index.cjs",
   "module": "./dist/index.js",
   "types": "./dist/index.d.ts",
   "exports": {
     ".": {
-      "import": {
-        "types": "./dist/index.d.ts",
-        "default": "./dist/index.js"
-      },
-      "require": {
-        "types": "./dist/index.d.cts",
-        "default": "./dist/index.cjs"
-      }
+      "import": { "types": "./dist/index.d.ts", "default": "./dist/index.js" },
+      "require": { "types": "./dist/index.d.cts", "default": "./dist/index.cjs" }
     }
   },
-  "publishConfig": {
-    "access": "public"
-  },
-  "files": [
-    "dist/",
-    "package.json",
-    "README.md"
-  ],
+  "publishConfig": { "access": "public" },
+  "files": ["dist/", "package.json", "README.md"],
   "scripts": {
     "build": "tsup src/index.ts --format esm,cjs --dts --clean --minify",
-    "test": "vitest run --coverage",
-    "lint": "eslint src/ --fix"
+    "test": "vitest run --coverage"
   },
   "dependencies": {
-    "workbox-build": "^7.0"
+    "glob": "^11.0.0"
   },
   "devDependencies": {
     "typescript": "^5.7",
-    "tsup": "^8.0"
+    "tsup": "^8.0",
+    "@types/node": "^22.0.0"
   },
-  "engines": {
-    "node": ">=18"
-  }
+  "engines": { "node": ">=18" },
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/0xMilord/better-pwa",
+    "directory": "packages/sw-builder"
+  },
+  "keywords": ["service-worker", "workbox", "sw-builder", "precache"]
 }

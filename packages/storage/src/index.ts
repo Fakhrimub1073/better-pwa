@@ -5,7 +5,7 @@
  */
 import { better } from "@better-logger/core";
 
-export type StorageEngine = "opfs" | "idb" | "memory";
+export type StorageEngineType = "opfs" | "idb" | "memory";
 
 export interface StorageQuota {
   usage: number;
@@ -14,12 +14,12 @@ export interface StorageQuota {
 }
 
 export interface StorageOptions {
-  engine?: StorageEngine;
+  engine?: StorageEngineType;
   priority?: "critical" | "high" | "normal" | "low";
 }
 
 class StorageEngine {
-  #activeEngine: StorageEngine = "idb";
+  #activeEngine: StorageEngineType = "idb";
   #idb: IDBDatabase | null = null;
   #memoryStore = new Map<string, unknown>();
   #quotaListeners: Array<(q: StorageQuota) => void> = [];
@@ -32,7 +32,7 @@ class StorageEngine {
   }
 
   /** Get the currently active engine */
-  get engine(): StorageEngine {
+  get engine(): StorageEngineType {
     return this.#activeEngine;
   }
 

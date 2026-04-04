@@ -110,7 +110,7 @@ function generateDefaultIcons(iconSrc?: string): ManifestIcon[] {
     src: iconSrc.replace("{size}", size),
     sizes: size,
     type: "image/png",
-    purpose: "any maskable" as const,
+    purpose: "maskable" as const,
   }));
 }
 
@@ -133,4 +133,3 @@ function generateHtmlLinks(config: ManifestConfig, manifestPath = "/manifest.jso
 }
 
 export { generateManifest, writeManifest, generateDefaultIcons, generateHtmlLinks, DEFAULT_MANIFEST };
-export type { ManifestConfig, ManifestIcon };

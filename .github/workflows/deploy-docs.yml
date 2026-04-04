@@ -5,6 +5,8 @@ on:
     branches: [main]
     paths:
       - 'docs/**'
+      - '.eleventy.js'
+      - '.github/workflows/deploy-docs.yml'
 
   workflow_dispatch:
 
@@ -33,11 +35,15 @@ jobs:
           rm -f package-lock.json
           npm install --legacy-peer-deps
 
-      - name: Install Eleventy globally
-        run: npm install -g @11ty/eleventy
+      - name: Install Eleventy
+        run: npm install -g @11ty/eleventy@3
 
       - name: Build docs site
         run: npx @11ty/eleventy --config=.eleventy.js
+
+      - name: Verify output
+        run: |
+          ls -la docs/_site/pages/ 2>/dev/null && echo "✅ Pages exist" || echo "❌ No pages"
 
       - name: Upload artifact
         uses: actions/upload-pages-artifact@v3
@@ -50,7 +56,6 @@ jobs:
     environment:
       name: github-pages
       url: ${{ steps.deployment.outputs.page_url }}
-
     steps:
       - name: Deploy to GitHub Pages
         id: deployment

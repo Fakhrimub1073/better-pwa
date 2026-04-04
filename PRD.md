@@ -493,6 +493,8 @@ Additional clarifications:
 - [Architecture](./ARCHITECTURE.md)
 - [Features](./FEATURES.md)
 - [Roadmap](./ROADMAP.md)
+- [Packages & Release](./PACKAGE-RELEASE.md)
+- [Guarantees](./GUARANTEES.md)
 
 ### 11.3 Revision History
 

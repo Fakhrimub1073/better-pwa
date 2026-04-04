@@ -188,6 +188,7 @@ better-pwa debug          # Interactive state visualization
 ## Deep Dive
 
 - **[Getting Started →](./docs/getting-started.md)** — Quick start, mental model, first project
+- **[Packages & Release →](./PACKAGE-RELEASE.md)** — Monorepo, release pipeline, CI/CD, testing strategy
 - **[Guarantees →](./GUARANTEES.md)** — The runtime contract you can depend on
 - **[Architecture →](./ARCHITECTURE.md)** — System design, data flow, trade-offs
 - **[Features →](./FEATURES.md)** — Complete API reference, acceptance criteria

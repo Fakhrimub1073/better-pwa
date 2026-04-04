@@ -702,6 +702,8 @@ Enterprise teams don't adopt on features alone. They adopt on **control, complia
 - [Product Requirements](./PRD.md)
 - [Architecture](./ARCHITECTURE.md)
 - [Features](./FEATURES.md)
+- [Packages & Release](./PACKAGE-RELEASE.md)
+- [Guarantees](./GUARANTEES.md)
 
 ### 11.3 Revision History
 

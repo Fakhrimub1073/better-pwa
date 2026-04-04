@@ -1014,6 +1014,8 @@ pwa.telemetry.use(new DatadogAdapter({ apiKey: "..." }))
 - [Product Requirements](./PRD.md)
 - [Features](./FEATURES.md)
 - [Roadmap](./ROADMAP.md)
+- [Packages & Release](./PACKAGE-RELEASE.md)
+- [Guarantees](./GUARANTEES.md)
 
 ### 18.3 Revision History
 

@@ -24,6 +24,7 @@
 9. [Feature Flags & Configuration](#9-feature-flags--configuration)
 10. [Framework Integration](#10-framework-integration)
 11. [CLI & Developer Tools](#11-cli--developer-tools)
+11b. [Enterprise Control Layer](#11b-enterprise-control-layer)
 12. [Acceptance Criteria Summary](#12-acceptance-criteria-summary)
 13. [Appendix](#13-appendix)
 
@@ -1218,6 +1219,201 @@ When running `better-pwa preview`, a simulation panel appears in the browser:
 - [ ] Simulations are zero-cost in production builds (tree-shaken)
 - [ ] Programmatic API works in Jest/Vitest test suites
 - [ ] Simulation state is visible in DevTools panel
+
+---
+
+## 11b. Enterprise Control Layer
+
+**Feature ID:** F-17 to F-24 | **Priority:** P0-P1 | **Target:** v1.1
+
+### 11b.1 Auth Guard & Session Continuity (F-17)
+
+**Description:** Enterprise apps require auth token persistence, cross-tab refresh coordination, and offline-aware auth state. Prevents 401 storms when replaying mutations after offline periods.
+
+**API:**
+```typescript
+pwa.auth.guard({
+  refresh: true,
+  persist: true,
+  crossTabSync: true
+})
+
+pwa.auth.getToken()     // Returns current token with expiry
+pwa.auth.refresh()      // Triggers refresh (leader-only in multi-tab)
+pwa.auth.onExpiry(cb)   // Callback when token is about to expire
+```
+
+**Acceptance Criteria:**
+- [ ] Only one tab refreshes at a time (leader election)
+- [ ] Auth requests made offline are queued, not dropped
+- [ ] Expired tokens detected before mutation replay
+- [ ] Token survives browser restart (IDB persistence)
+
+### 11b.2 Network Intelligence Layer (F-18)
+
+**Description:** Latency-aware sync that adapts behavior based on connection quality. Slow networks get deferred sync, fast networks get aggressive parallel replay.
+
+**API:**
+```typescript
+const profile = pwa.network.profile()
+// "slow" | "unstable" | "fast"
+
+pwa.network.setPolicy("slow", {
+  maxRetries: 3,
+  parallelLimit: 1,
+  backoffMultiplier: 2
+})
+```
+
+**Acceptance Criteria:**
+- [ ] Network profiling uses `navigator.connection` + active measurement
+- [ ] Sync behavior adapts to profile automatically
+- [ ] Per-request network quality tagging
+
+### 11b.3 Audit Log System (F-19)
+
+**Description:** Structured, exportable, tamper-evident audit trail for all lifecycle events, mutations, permission changes, and SW updates.
+
+**API:**
+```typescript
+// Auto-logged events (no manual call needed)
+// pwa automatically logs: mutation enqueue/replay, permission changes,
+// SW updates, sync events, auth events, policy violations
+
+// Manual audit entries
+pwa.audit.log({ action: "user_action", actor: "admin-1", status: "success" })
+
+// Export for compliance
+const export = pwa.audit.export({
+  from: "2026-01-01",
+  to: "2026-03-31",
+  format: "json"  // or "csv"
+})
+
+// Tamper check
+const isIntact = pwa.audit.verifyIntegrity()  // boolean
+```
+
+**Acceptance Criteria:**
+- [ ] All lifecycle events auto-logged (zero manual calls)
+- [ ] Tamper-evident via SHA-256 hash chaining
+- [ ] Export produces valid JSON/CSV
+- [ ] Configurable retention period (default: 90 days)
+- [ ] Integrity verification detects modifications
+
+### 11b.4 Policy Engine (F-20)
+
+**Description:** Declarative admin-defined policies enforced at runtime. Controls offline behavior, storage quotas, permission restrictions.
+
+**API:**
+```typescript
+pwa.policy.enforce({
+  offline: "allowed" | "blocked" | "read-only",
+  storageLimit: "500mb",
+  permissions: { camera: "denied", microphone: "allowed" },
+  maxQueueDepth: 1000,
+  maxStorageEntries: 50000
+})
+
+// Policy remote fetch (for enterprise SSO distribution)
+pwa.policy.fetch("https://admin.example.com/pwa-policy.json")
+```
+
+**Acceptance Criteria:**
+- [ ] Policies enforced at runtime (not just at config)
+- [ ] Policy violations logged to audit trail
+- [ ] Remote policy fetch with fallback to local
+- [ ] MDM compatibility (policies distributed via device management)
+
+### 11b.5 Feature Flags (F-21)
+
+**Description:** Runtime-level feature flags integrated with the rollout/update system.
+
+**API:**
+```typescript
+pwa.flags.isEnabled("new_sync_engine")  // boolean
+pwa.flags.getAll()  // { new_sync_engine: true, dark_mode: false }
+pwa.flags.on("changed", (flag, value) => { ... })
+```
+
+**Acceptance Criteria:**
+- [ ] Remote flag polling (configurable endpoint)
+- [ ] Percentage-based activation (A/B testing)
+- [ ] Integration with update rollout system
+- [ ] Flag state visible in `pwa.debug()` and DevTools
+
+### 11b.6 Disaster Recovery Layer (F-22)
+
+**Description:** Nuclear option for when things go really wrong. Resets app to clean state while preserving critical data.
+
+**API:**
+```typescript
+// Nuclear reset
+await pwa.recovery.reset({
+  preserve: ["auth", "settings"],  // What to keep
+  clear: ["queue", "cache", "state"]  // What to wipe
+})
+
+// Integrity checks
+const report = await pwa.recovery.checkIntegrity()
+// { idb: "ok", queue: "ok", sw: "ok", cache: "corrupted" }
+
+// Emergency rollback
+await pwa.recovery.rollbackTo("v1.2.3")
+```
+
+**Acceptance Criteria:**
+- [ ] Reset preserves specified keys exactly
+- [ ] Integrity check detects storage corruption
+- [ ] Queue overflow handling (cap at N entries, alert)
+- [ ] Emergency rollback to known-good SW version
+
+### 11b.7 SLA / Reliability Metrics (F-23)
+
+**Description:** Measurable reliability metrics exportable to observability platforms.
+
+**API:**
+```typescript
+const metrics = pwa.metrics.get()
+// {
+//   uptime: 99.7,              // %
+//   syncSuccessRate: 99.2,     // %
+//   meanReplayTime: "1.3s",    // Average
+//   failureRate: 0.8,          // %
+//   p50ReplayTime: "0.8s",
+//   p99ReplayTime: "4.2s",
+//   totalMutationsSynced: 14523,
+//   totalMutationsFailed: 117
+// }
+
+// Export to Datadog/Grafana
+pwa.metrics.export("datadog", { apiKey: "..." })
+```
+
+**Acceptance Criteria:**
+- [ ] Metrics accurate within 1% of actual performance
+- [ ] Export compatible with Datadog, Grafana, Prometheus
+- [ ] Historical metrics survive page reloads (IDB persistence)
+- [ ] Alerting thresholds (emit events when SLA degrades)
+
+### 11b.8 Enterprise Capability Matrix (F-24)
+
+**Description:** Browser-by-browser capability report with degradation levels.
+
+**API:**
+```typescript
+const report = pwa.capabilities.report()
+// {
+//   "chrome-130": { state: "full", updates: "full", offline: "full", ... },
+//   "safari-18":  { state: "full", updates: "full", offline: "degraded", ... },
+//   "firefox-130":{ state: "full", updates: "full", offline: "fallback", ... }
+// }
+```
+
+**Acceptance Criteria:**
+- [ ] Covers all supported browsers
+- [ ] Maps to GUARANTEES.md — shows which guarantees apply per browser
+- [ ] Auto-generated from runtime feature detection
 
 ---
 

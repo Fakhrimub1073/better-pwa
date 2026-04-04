@@ -22,9 +22,11 @@
 7. [Guarantee 5: Cold Start Integrity](#7-guarantee-5-cold-start-integrity)
 8. [Guarantee 6: Schema Evolution](#8-guarantee-6-schema-evolution)
 9. [Guarantee 7: Resource Prioritization](#9-guarantee-7-resource-prioritization)
-10. [Violation Reporting](#10-violation-reporting)
-11. [Scope & Limitations](#11-scope--limitations)
-12. [Appendix](#12-appendix)
+10. [Guarantee 8: Auth Session Continuity](#10-guarantee-8-auth-session-continuity-enterprise)
+11. [Guarantee 9: Audit Completeness](#11-guarantee-9-audit-completeness-enterprise)
+12. [Violation Reporting](#12-violation-reporting)
+13. [Scope & Limitations](#13-scope--limitations)
+14. [Appendix](#14-appendix)
 
 ---
 
@@ -302,9 +304,54 @@ A violation occurs if:
 
 ---
 
-## 10. Violation Reporting
+## 10. Guarantee 8: Auth Session Continuity (Enterprise)
 
-### 10.1 Runtime Detection
+> **Authentication state is preserved across tabs, network transitions, and browser restarts — no silent 401 storms, no duplicate refreshes.**
+
+### 10.1 Contract
+
+| Guarantee | Specification | Enforcement |
+|-----------|---------------|-------------|
+| **Token Persistence** | Auth tokens survive page reloads and browser restarts | IDB-backed token store with expiry tracking |
+| **Cross-Tab Refresh** | Only one tab performs token refresh; others wait | Leader-elected refresh coordination |
+| **Offline Auth Awareness** | Auth requests made while offline are queued, not dropped | Integration with mutation queue |
+| **No 401 Storms** | Expired tokens are detected before replay; refresh attempted first | Pre-replay auth check |
+| **Graceful Expiry** | Expired auth does not break the app — user is notified, session preserved | `auth:expired` event, state preserved |
+
+### 10.2 Violation Conditions
+
+A violation occurs if:
+- Multiple tabs simultaneously refresh the same token
+- An expired token is used for mutation replay without refresh attempt
+- Auth state is lost during browser restart
+
+---
+
+## 11. Guarantee 9: Audit Completeness (Enterprise)
+
+> **Every significant runtime event is logged in a structured, exportable, tamper-evident audit trail.**
+
+### 11.1 Contract
+
+| Guarantee | Specification | Enforcement |
+|-----------|---------------|-------------|
+| **Complete Logging** | All lifecycle events, mutations, permission changes, and SW updates are logged | Event bus → audit pipeline |
+| **Tamper Evidence** | Audit entries are hash-chained; modifications are detectable | SHA-256 chain per entry |
+| **Export Readiness** | Audit logs are exportable in compliance-ready formats (JSON, CSV) | `pwa.audit.export()` API |
+| **Retention Guarantee** | Logs are retained for the configured period (default: 90 days) | Automatic rotation with minimum retention |
+
+### 11.2 Violation Conditions
+
+A violation occurs if:
+- A logged event is silently dropped
+- Audit export produces malformed or incomplete data
+- Log entries are lost before retention period expires
+
+---
+
+## 12. Violation Reporting
+
+### 12.1 Runtime Detection
 
 Every guarantee has a corresponding runtime checker. When a guarantee is at risk:
 
@@ -315,7 +362,7 @@ pwa.on("guarantee:at_risk", (event) => {
 })
 ```
 
-### 10.2 Violation Event Schema
+### 12.2 Violation Event Schema
 
 ```typescript
 interface GuaranteeViolationEvent {
@@ -327,7 +374,7 @@ interface GuaranteeViolationEvent {
 }
 ```
 
-### 10.3 CI Enforcement
+### 12.3 CI Enforcement
 
 - All guarantees have integration tests in the CI pipeline
 - Guarantee regressions block releases (P0 gate)
@@ -335,22 +382,22 @@ interface GuaranteeViolationEvent {
 
 ---
 
-## 11. Scope & Limitations
+## 13. Scope & Limitations
 
-### 11.1 What These Guarantees Cover
+### 13.1 What These Guarantees Cover
 
 - Runtime behavior in supported browsers (see [Browser Support](./PRD.md#91-browser-support-matrix))
 - Correct usage of the API (misconfiguration may degrade capability but not violate guarantees)
 - Server-side cooperation (for data durability, the server must accept idempotent requests)
 
-### 11.2 What These Guarantees Do NOT Cover
+### 13.2 What These Guarantees Do NOT Cover
 
 - **Browser bugs** — If Chromium drops IndexedDB writes, we degrade gracefully but cannot guarantee durability
 - **Server failures** — If the server rejects valid requests, mutations remain queued (not lost)
 - **User actions** — Force-killing the browser during an IDB transaction may lose the in-flight write (mitigated by transaction rollback)
 - **Network partitions >7 days** — Mutation queue persists, but TTL-expired entries may be evicted (configurable)
 
-### 11.3 Degradation vs. Violation
+### 13.3 Degradation vs. Violation
 
 | Term | Definition |
 |------|-----------|
@@ -359,9 +406,9 @@ interface GuaranteeViolationEvent {
 
 ---
 
-## 12. Appendix
+## 14. Appendix
 
-### 12.1 Guarantee Summary
+### 14.1 Guarantee Summary
 
 | # | Guarantee | Pillar | Enforced By |
 |---|-----------|--------|-------------|
@@ -372,8 +419,10 @@ interface GuaranteeViolationEvent {
 | G5 | Cold Start Integrity | Data | Staged boot + failure isolation |
 | G6 | Schema Evolution | Data | Migration gate + atomicity + rollback |
 | G7 | Resource Prioritization | Data | Priority queue + tagged cache entries |
+| G8 | Auth Session Continuity | Enterprise | Token persistence + cross-tab refresh + 401 storm prevention |
+| G9 | Audit Completeness | Enterprise | Event bus pipeline + hash chaining + export API |
 
-### 12.2 Related Documents
+### 14.2 Related Documents
 
 - [Product Requirements](./PRD.md)
 - [Architecture](./ARCHITECTURE.md)

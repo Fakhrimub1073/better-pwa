@@ -25,11 +25,12 @@
 10. [Multi-Tab Coordination](#10-multi-tab-coordination)
 11. [Plugin System Design](#11-plugin-system-design)
 12. [Security Architecture](#12-security-architecture)
-13. [Observability & Telemetry](#13-observability--telemetry)
-14. [Build & Tooling Pipeline](#14-build--tooling-pipeline)
-15. [Performance Budgets](#15-performance-budgets)
-16. [Design Decisions & Trade-offs](#16-design-decisions--trade-offs)
-17. [Appendix](#17-appendix)
+13. [Enterprise Architecture](#13-enterprise-architecture)
+14. [Observability & Telemetry](#14-observability--telemetry)
+15. [Build & Tooling Pipeline](#15-build--tooling-pipeline)
+16. [Performance Budgets](#16-performance-budgets)
+17. [Design Decisions & Trade-offs](#17-design-decisions--trade-offs)
+18. [Appendix](#18-appendix)
 
 ---
 
@@ -719,9 +720,140 @@ Manifest `scope` is enforced at runtime:
 
 ---
 
-## 13. Observability & Telemetry
+## 13. Enterprise Architecture
 
-### 13.1 Event Bus
+### 13.1 Auth Layer Architecture
+
+The auth layer sits between the mutation queue and the network. It intercepts every outbound request to check token validity before transmission.
+
+```
+[Mutation Queue] ──▶ [Auth Guard] ──▶ [Network]
+                         │
+                    Token expired?
+                         │
+                    [Leader Tab Refreshes]
+                         │
+                    [Broadcast New Token]
+                         │
+                    [Resume Queue]
+```
+
+**Key Design:**
+- Token stored in IDB with expiry timestamp
+- Only leader tab performs refresh (prevents 401 storms)
+- Pre-replay check: if token expires within 30s, refresh first
+- Cross-tab sync: new token broadcast via BroadcastChannel
+
+### 13.2 Network Intelligence Architecture
+
+Network profiling combines passive (`navigator.connection`) and active (request timing) measurement.
+
+```
+[navigator.connection] ──▶ ┐
+                            ├──▶ [Network Profiler] ──▶ [Profile: slow|unstable|fast]
+[Request Timing Data] ───▶ ┘                                │
+                                                            ▼
+                                                   [Sync Scheduler]
+                                                    (adapts behavior)
+```
+
+**Behavioral Adaptation:**
+
+| Profile | Sync Behavior | Retry Policy | Parallelism |
+|---------|--------------|--------------|-------------|
+| `slow` | Defer non-critical | 3 retries, 2x backoff | 1 concurrent |
+| `unstable` | Queue-only, no sync | 5 retries, exponential | 2 concurrent |
+| `fast` | Aggressive immediate | 5 retries, linear | 5 concurrent |
+
+### 13.3 Audit Pipeline
+
+```
+[Event Bus] ──▶ [Audit Interceptor] ──▶ [Hash Chain] ──▶ [IndexedDB]
+                                              │
+                                        SHA-256(prev_hash + entry)
+                                              │
+                                        [Tamper Detection]
+```
+
+**Hash Chaining:**
+Each audit entry includes the SHA-256 hash of the previous entry. Any modification breaks the chain, making tampering detectable.
+
+```
+Entry 1: hash("root")
+Entry 2: hash(Entry 1 hash + data)
+Entry 3: hash(Entry 2 hash + data)
+...
+```
+
+### 13.4 Policy Engine Architecture
+
+```
+[Policy Config] ──▶ [Policy Engine] ──▶ [Runtime Interceptors]
+                                              │
+                              ┌───────────────┼───────────────┐
+                              ▼               ▼               ▼
+                         [Storage]      [Network]      [Permissions]
+                         Quota check    Offline check  Allowlist check
+```
+
+**Interception Points:**
+- Storage writes: check against `storageLimit`
+- Network requests: check against `offline` policy
+- Permission requests: check against allowlist/denylist
+- Queue enqueue: check against `maxQueueDepth`
+
+### 13.5 Disaster Recovery Architecture
+
+```
+[pwa.recovery.reset()]
+        │
+        ▼
+┌──────────────────┐
+| Backup Specified │
+| Keys (auth, etc) │
+└────────┬─────────┘
+         │
+         ▼
+┌──────────────────┐
+| Wipe IDB, Cache, │
+| Queue, State     │
+└────────┬─────────┘
+         │
+         ▼
+┌──────────────────┐
+| Restore Backed   │
+| Keys             │
+└────────┬─────────┘
+         │
+         ▼
+┌──────────────────┐
+| Re-register SW,  │
+| Reset State      │
+└──────────────────┘
+```
+
+### 13.6 SLA Metrics Architecture
+
+```
+[Runtime Events] ──▶ [Metrics Aggregator] ──▶ [IDB Persistence]
+                                                    │
+                     ┌──────────────────────────────┼──────────────────┐
+                     ▼                              ▼                  ▼
+              [pwa.metrics.get()]     [Datadog Export]      [Alert Thresholds]
+```
+
+**Metrics Collection:**
+- Uptime: derived from online/offline state transitions
+- Sync success rate: successful replays / total replays
+- Replay latency: timestamp from dequeue to server acknowledgment
+- Failure rate: failed replays / total replays
+- Percentiles (p50, p95, p99) calculated from rolling window (last 1000 entries)
+
+---
+
+## 14. Observability & Telemetry
+
+### 14.1 Event Bus
 
 All lifecycle events flow through a unified observable:
 
@@ -732,7 +864,7 @@ pwa.observe().subscribe((event) => {
 })
 ```
 
-### 13.2 Built-In Metrics
+### 14.2 Built-In Metrics
 
 | Metric | Description | Emitted On |
 |--------|-------------|------------|
@@ -742,7 +874,7 @@ pwa.observe().subscribe((event) => {
 | `permission.denial_rate` | % of denied requests | Every permission request |
 | `storage.quota_utilization` | % of storage used | Every 5min |
 
-### 13.3 Telemetry Adapters
+### 14.3 Telemetry Adapters
 
 Pluggable interface for external backends:
 ```typescript
@@ -756,9 +888,9 @@ pwa.telemetry.use(new DatadogAdapter({ apiKey: "..." }))
 
 ---
 
-## 14. Build & Tooling Pipeline
+## 15. Build & Tooling Pipeline
 
-### 14.1 SW Builder Flow
+### 15.1 SW Builder Flow
 
 ```
 [better-pwa.config.ts]
@@ -782,7 +914,7 @@ pwa.telemetry.use(new DatadogAdapter({ apiKey: "..." }))
   [Output to dist/]
 ```
 
-### 14.2 CLI Commands
+### 15.2 CLI Commands
 
 | Command | Description | Exit Code on Failure |
 |---------|-------------|---------------------|
@@ -794,7 +926,7 @@ pwa.telemetry.use(new DatadogAdapter({ apiKey: "..." }))
 
 ---
 
-## 15. Performance Budgets
+## 16. Performance Budgets
 
 | Asset | Budget (gzip) | Enforcement |
 |-------|---------------|-------------|
@@ -807,9 +939,9 @@ pwa.telemetry.use(new DatadogAdapter({ apiKey: "..." }))
 
 ---
 
-## 16. Design Decisions & Trade-offs
+## 17. Design Decisions & Trade-offs
 
-### 16.1 Why Custom State Engine Instead of RxJS/Redux?
+### 17.1 Why Custom State Engine Instead of RxJS/Redux?
 
 **Decision:** Build lightweight reactive state from scratch.
 
@@ -822,7 +954,7 @@ pwa.telemetry.use(new DatadogAdapter({ apiKey: "..." }))
 
 ---
 
-### 16.2 Why IndexedDB for State Persistence Instead of localStorage?
+### 17.2 Why IndexedDB for State Persistence Instead of localStorage?
 
 **Decision:** Use IndexedDB for critical state persistence.
 
@@ -835,7 +967,7 @@ pwa.telemetry.use(new DatadogAdapter({ apiKey: "..." }))
 
 ---
 
-### 16.3 Why Leader Election for Multi-Tab Instead of All-Tab Sync?
+### 17.3 Why Leader Election for Multi-Tab Instead of All-Tab Sync?
 
 **Decision:** Elect one tab as coordinator for mutation replay.
 
@@ -848,7 +980,7 @@ pwa.telemetry.use(new DatadogAdapter({ apiKey: "..." }))
 
 ---
 
-### 16.4 Why Workbox for Precaching Instead of Custom SW?
+### 17.4 Why Workbox for Precaching Instead of Custom SW?
 
 **Decision:** Build on Workbox for asset precaching.
 
@@ -861,9 +993,9 @@ pwa.telemetry.use(new DatadogAdapter({ apiKey: "..." }))
 
 ---
 
-## 17. Appendix
+## 18. Appendix
 
-### 17.1 Glossary
+### 18.1 Glossary
 
 | Term | Definition |
 |------|-----------|
@@ -877,13 +1009,13 @@ pwa.telemetry.use(new DatadogAdapter({ apiKey: "..." }))
 | **TTL** | Time To Live |
 | **LWW** | Last Write Wins |
 
-### 17.2 Related Documents
+### 18.2 Related Documents
 
 - [Product Requirements](./PRD.md)
 - [Features](./FEATURES.md)
 - [Roadmap](./ROADMAP.md)
 
-### 17.3 Revision History
+### 18.3 Revision History
 
 | Version | Date | Author | Changes |
 |---------|------|--------|---------|

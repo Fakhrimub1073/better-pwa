@@ -21,10 +21,11 @@
 5. [Phase 3: v0.3 — Data Consistency & Storage](#5-phase-3-v03--data-consistency--storage)
 6. [Phase 4: v0.4 — Platform-Level Coordination](#6-phase-4-v04--platform-level-coordination)
 7. [Phase 5: v1.0 — The "Full Stack" Release](#7-phase-5-v10--the-full-stack-release)
-8. [Post-v1.0: Future Horizons](#8-post-v10-future-horizons)
-9. [Risk & Dependency Mapping](#9-risk--dependency-mapping)
-10. [Milestone Tracking](#10-milestone-tracking)
-11. [Appendix](#11-appendix)
+8. [Phase 6: v1.1 — Enterprise Control Layer](#8-phase-6-v11--enterprise-control-layer)
+9. [Post-v1.0: Future Horizons](#9-post-v10-future-horizons)
+10. [Risk & Dependency Mapping](#10-risk--dependency-mapping)
+11. [Milestone Tracking](#11-milestone-tracking)
+12. [Appendix](#12-appendix)
 
 ---
 
@@ -492,9 +493,112 @@ Achieve production-grade stability: security hardening, distribution tooling, gr
 
 ---
 
-## 8. Post-v1.0: Future Horizons
+## 8. Phase 6: v1.1 — Enterprise Control Layer
 
-### 8.1 v1.x (Post-GA Enhancements)
+**Target Date:** October 2026 | **Duration:** 6 weeks | **Theme:** Enterprise Adoption
+
+### 8.1 Objectives
+
+Enterprise teams don't adopt on features alone. They adopt on **control, compliance, observability, and disaster recovery**. This phase adds the layers that make better-pwa safe for Fortune 500 deployments.
+
+### 8.2 Deliverables
+
+| ID | Deliverable | Description | Priority | Status |
+|----|-------------|-------------|----------|--------|
+| D-25 | Auth Guard & Session Continuity | Token persistence, cross-tab refresh, offline-aware auth desync prevention | P0 | 🟡 Planned |
+| D-26 | Network Intelligence Layer | Latency-aware sync, bandwidth profiling, adaptive retry policies | P0 | 🟡 Planned |
+| D-27 | Audit Log System | Exportable, structured audit trail for all lifecycle events, mutations, permission changes | P0 | 🟡 Planned |
+| D-28 | Policy Engine | Declarative policies for offline restrictions, storage quotas, permission allowlists | P1 | 🟡 Planned |
+| D-29 | Feature Flags (runtime-level) | `pwa.flags.isEnabled()` tied to rollout, update system, A/B testing | P1 | 🟡 Planned |
+| D-30 | Disaster Recovery Layer | `pwa.recovery.reset()`, storage corruption detection, queue overflow handling | P0 | 🟡 Planned |
+| D-31 | SLA / Reliability Metrics | `pwa.metrics.get()` — uptime, sync success rate, failure rate, mean replay time | P0 | 🟡 Planned |
+| D-32 | Enterprise Capability Matrix | `pwa.capabilities.report()` — browser-by-browser support grid with degradation levels | P1 | 🟡 Planned |
+
+### 8.3 Technical Tasks
+
+- [ ] **Auth Guard & Session Continuity**
+  - [ ] `pwa.auth.guard({ refresh: true, persist: true, crossTabSync: true })`
+  - [ ] Token persistence in IDB with expiry tracking
+  - [ ] Cross-tab token refresh coordination (only one tab refreshes)
+  - [ ] Offline-aware auth: queue auth requests, replay on reconnect
+  - [ ] Expired token detection before mutation replay (prevent 401 storms)
+  - [ ] Auth state integration with `pwa.state()`
+
+- [ ] **Network Intelligence Layer**
+  - [ ] `pwa.network.profile()` — returns `slow | unstable | fast`
+  - [ ] NetworkRTT and bandwidth estimation via `navigator.connection`
+  - [ ] Adaptive sync: defer sync on slow/unstable, aggressive on fast
+  - [ ] Retry policies per network tier (slow: 3 retries, fast: 5 retries)
+  - [ ] Network state integration with lifecycle state machine
+  - [ ] Per-request network quality tagging
+
+- [ ] **Audit Log System**
+  - [ ] `pwa.audit.log({ action, actor, resource, status, timestamp })`
+  - [ ] Structured JSON audit trail in IndexedDB
+  - [ ] Export to CSV/JSON for compliance teams
+  - [ ] Audit events: mutation replay, permission changes, SW updates, sync events
+  - [ ] Tamper-evident log entries (hash chaining)
+  - [ ] Configurable retention period (default: 90 days)
+
+- [ ] **Policy Engine**
+  - [ ] `pwa.policy.enforce({ offline: "allowed", storageLimit: "500mb" })`
+  - [ ] Declarative policy config (JSON/YAML)
+  - [ ] Admin-defined rules: block offline for certain apps, limit storage, restrict permissions
+  - [ ] Policy violation events → audit log
+  - [ ] Enterprise SSO integration for policy distribution
+  - [ ] MDM (Mobile Device Management) compatibility
+
+- [ ] **Feature Flags**
+  - [ ] `pwa.flags.isEnabled("new_sync_engine")`
+  - [ ] Remote feature flag polling (configurable endpoint)
+  - [ ] Integration with rollout/update system
+  - [ ] A/B testing support (percentage-based flag activation)
+  - [ ] Flag state visible in `pwa.debug()` and DevTools
+
+- [ ] **Disaster Recovery Layer**
+  - [ ] `pwa.recovery.reset({ preserve: ["auth"] })` — nuclear option with selective preservation
+  - [ ] Storage corruption detection (IDB integrity checks)
+  - [ ] Mutation queue overflow handling (cap at N entries, alert)
+  - [ ] SW registration failure auto-recovery
+  - [ ] Emergency rollback to known-good version
+  - [ ] Recovery event audit trail
+
+- [ ] **SLA / Reliability Metrics**
+  - [ ] `pwa.metrics.get()` returns: uptime, sync success rate, failure rate, mean replay time
+  - [ ] SLA dashboard data export (Datadog, Grafana compatible)
+  - [ ] Historical metrics persistence (survives page reloads)
+  - [ ] Alerting thresholds (emit events when SLA degrades)
+  - [ ] Weekly/monthly reliability report generation
+
+- [ ] **Enterprise Capability Matrix**
+  - [ ] `pwa.capabilities.report()` — browser-by-browser feature support grid
+  - [ ] Output: supported, degraded, fallback, unsupported
+  - [ ] Maps to GUARANTEES.md — shows which guarantees apply per browser
+  - [ ] Auto-generated from runtime feature detection
+
+### 8.4 Acceptance Criteria
+
+- [ ] Auth guard prevents offline 401 storms
+- [ ] Network intelligence adapts sync behavior to connection quality
+- [ ] Audit logs exportable in compliance-ready format (JSON, CSV)
+- [ ] Policy engine enforces admin-defined rules at runtime
+- [ ] Disaster recovery resets app to clean state without data loss
+- [ ] SLA metrics accurate within 1% of actual performance
+- [ ] Capability matrix covers all supported browsers
+
+### 8.5 Risk & Mitigation
+
+| Risk | Likelihood | Impact | Mitigation |
+|------|------------|--------|------------|
+| Enterprise policy complexity | Medium | High | Start simple (3 policy types), expand based on feedback |
+| Audit log storage bloat | High | Medium | Automatic rotation, configurable retention |
+| Network profiling overhead | Low | Medium | Sample-based estimation, cached profiles |
+
+---
+
+## 9. Post-v1.0: Future Horizons
+
+### 9.1 v1.x (Post-GA Enhancements)
 
 | Feature | Description | Target |
 |---------|-------------|--------|

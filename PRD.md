@@ -21,11 +21,12 @@
 4. [Target Audience & Use Cases](#4-target-audience--use-cases)
 5. [Core Principles & Design Tenets](#5-core-principles--design-tenets)
 6. [Feature Specifications](#6-feature-specifications)
-7. [Non-Goals / Out of Scope](#7-non-goals--out-of-scope)
-8. [Success Metrics & KPIs](#8-success-metrics--kpis)
-9. [Technical Assumptions & Dependencies](#9-technical-assumptions--dependencies)
-10. [Risk Assessment](#10-risk-assessment)
-11. [Appendix](#11-appendix)
+7. [Enterprise Control Layer (v1.1)](#68-enterprise-control-layer-v11)
+8. [Non-Goals / Out of Scope](#7-non-goals--out-of-scope)
+9. [Success Metrics & KPIs](#8-success-metrics--kpis)
+10. [Technical Assumptions & Dependencies](#9-technical-assumptions--dependencies)
+11. [Risk Assessment](#10-risk-assessment)
+12. [Appendix](#11-appendix)
 
 ---
 
@@ -282,6 +283,121 @@ pwa.storage.evict(policy: "lru" | "lfu" | "ttl")
 - ✅ All lifecycle events are observable and loggable.
 - ✅ CSP presets pass Lighthouse security audit.
 - ✅ `doctor` CLI catches 95% of misconfigurations.
+
+---
+
+## 6.8 Enterprise Control Layer (v1.1)
+
+**Description:** The layers that make better-pwa safe for Fortune 500 deployments: auth continuity, network intelligence, audit logging, policy enforcement, disaster recovery, and SLA metrics.
+
+### 6.8.1 Auth Guard & Session Continuity
+
+**API Contract:**
+```typescript
+pwa.auth.guard({
+  refresh: true,          // Auto-refresh expiring tokens
+  persist: true,          // Persist across browser restarts
+  crossTabSync: true      // Only one tab refreshes at a time
+})
+```
+
+**Behavioral Requirements:**
+- Token persistence in IDB with expiry tracking
+- Cross-tab refresh coordination (leader-only)
+- Offline-aware auth: queue auth requests, replay on reconnect
+- Pre-replay auth check prevents 401 storms
+
+### 6.8.2 Network Intelligence Layer
+
+**API Contract:**
+```typescript
+const profile = pwa.network.profile()
+// Returns: "slow" | "unstable" | "fast"
+```
+
+**Behavioral Requirements:**
+- Adaptive sync behavior based on network quality
+- Slow/unstable: defer sync, reduce retries
+- Fast: aggressive replay, parallel requests
+- Per-request network quality tagging
+
+### 6.8.3 Audit Log System
+
+**API Contract:**
+```typescript
+pwa.audit.log({
+  action: "mutation_replay",
+  actor: "user-123",
+  resource: "/api/orders/456",
+  status: "success",
+  timestamp: Date.now()
+})
+
+const logs = pwa.audit.export({ from: "2026-01-01", format: "json" })
+```
+
+**Behavioral Requirements:**
+- Structured JSON audit trail in IndexedDB
+- Tamper-evident (SHA-256 hash chaining)
+- Export to JSON/CSV for compliance
+- Configurable retention (default: 90 days)
+
+### 6.8.4 Policy Engine
+
+**API Contract:**
+```typescript
+pwa.policy.enforce({
+  offline: "allowed",
+  storageLimit: "500mb",
+  permissions: ["camera:denied"],
+  maxQueueDepth: 1000
+})
+```
+
+**Behavioral Requirements:**
+- Declarative policy config (JSON/YAML)
+- Admin-defined rules enforced at runtime
+- Policy violations → audit log
+- Enterprise SSO/MDM compatibility
+
+### 6.8.5 Feature Flags
+
+**API Contract:**
+```typescript
+pwa.flags.isEnabled("new_sync_engine")  // boolean
+```
+
+**Behavioral Requirements:**
+- Remote flag polling (configurable endpoint)
+- Integration with rollout/update system
+- A/B testing support (percentage-based)
+- Flag state visible in debug mode
+
+### 6.8.6 Disaster Recovery
+
+**API Contract:**
+```typescript
+pwa.recovery.reset({ preserve: ["auth", "settings"] })
+```
+
+**Behavioral Requirements:**
+- Nuclear option with selective preservation
+- Storage corruption detection (IDB integrity checks)
+- Mutation queue overflow handling
+- Emergency rollback to known-good version
+
+### 6.8.7 SLA / Reliability Metrics
+
+**API Contract:**
+```typescript
+const metrics = pwa.metrics.get()
+// { uptime: 99.7, syncSuccessRate: 99.2, meanReplayTime: "1.3s", failureRate: 0.8 }
+```
+
+**Behavioral Requirements:**
+- Uptime, sync success rate, failure rate, mean replay time
+- Export to Datadog/Grafana formats
+- Alerting thresholds (emit events when SLA degrades)
 
 ---
 

@@ -29,14 +29,14 @@ class ColdStartEngine {
       {
         name: "hydrate",
         fn: async () => {
-          this.#log.step("hydrate").info("Loading cached UI shell");
+          better.log.info("cold-start:hydrate", "Loading cached UI shell");
         },
         timeout: DEFAULT_TIMEOUTS.hydrate,
       },
       {
         name: "sync",
         fn: async () => {
-          this.#log.step("sync").info("Checking network and fetching critical data");
+          better.log.info("cold-start:sync", "Checking network and fetching critical data");
           if (!navigator.onLine) {
             throw new Error("No network available");
           }
@@ -46,14 +46,14 @@ class ColdStartEngine {
       {
         name: "update",
         fn: async () => {
-          this.#log.step("update").info("Checking for pending SW updates");
+          better.log.info("cold-start:update", "Checking for pending SW updates");
         },
         timeout: DEFAULT_TIMEOUTS.update,
       },
       {
         name: "replay",
         fn: async () => {
-          this.#log.step("replay").info("Replaying mutation queue");
+          better.log.info("cold-start:replay", "Replaying mutation queue");
         },
         timeout: DEFAULT_TIMEOUTS.replay,
       },
@@ -69,15 +69,15 @@ class ColdStartEngine {
     };
 
     for (const stage of this.#stages) {
-      this.#log.step(`boot:${stage.name}`).info("Starting stage");
+      better.log.info("cold-start:stage-start", { stage: stage.name });
 
       try {
         await this.#withTimeout(stage.fn({} as BetterPwaConfig), stage.timeout);
         result.stagesCompleted.push(stage.name);
-        this.#log.step(`boot:${stage.name}:complete`).success();
+        better.log.info("cold-start:stage-complete", { stage: stage.name });
       } catch (error) {
         result.stagesFailed.push(stage.name);
-        this.#log.step(`boot:${stage.name}:failed`).error({ error });
+        better.log.error("cold-start:stage-failed", { stage: stage.name, error });
 
         // Stage-specific failure handling
         if (stage.name === "hydrate") {
@@ -101,7 +101,7 @@ class ColdStartEngine {
     }
 
     result.state = "STABLE";
-    this.#log.step("boot-complete").success({ state: result.state });
+    better.log.info("cold-start:complete", { state: result.state });
     return result;
   }
 

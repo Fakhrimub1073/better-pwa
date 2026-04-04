@@ -179,28 +179,28 @@ export interface BetterPwaPlugin {
   extend?(api: Record<string, unknown>): void;
 }
 
-// ─── Public API ─────────────────────────────────────────────────────────────
+// ─── Public API Interfaces ──────────────────────────────────────────────────
 
-export interface StateEngine {
+export interface StateEngineAPI {
   snapshot(): Readonly<PwaState>;
   subscribe(keys: StateKeys[], cb: StateSubscriber): Unsubscribe;
   set<T extends StateKeys>(key: T, value: PwaState[T]): Promise<void>;
   reset(): Promise<void>;
 }
 
-export interface LifecycleEngine {
+export interface LifecycleEngineAPI {
   state(): AppState;
   onTransition(cb: (from: AppState, to: AppState, metadata: Record<string, unknown>) => void): Unsubscribe;
   blockedTransitions(): TransitionRecord[];
 }
 
-export interface PermissionEngine {
+export interface PermissionEngineAPI {
   request(permissions: string[], options?: PermissionRequestOptions): Promise<PermissionResults>;
   status(): PermissionResults;
   on(event: "denied", cb: (permission: string, fallback: { show: (opts: Record<string, string>) => void }) => void): Unsubscribe;
 }
 
-export interface UpdateEngine {
+export interface UpdateEngineAPI {
   setStrategy(strategy: "soft" | "hard" | "gradual" | "on-reload", options?: GradualRolloutOptions): void;
   on(event: "update_available", cb: (version: string) => void): Unsubscribe;
   activate(): Promise<void>;
@@ -217,11 +217,11 @@ export interface BetterPwaConfig {
   [key: string]: unknown;
 }
 
-export interface BetterPwaRuntime {
-  state: () => StateEngine;
-  lifecycle: () => LifecycleEngine;
-  permissions: () => PermissionEngine;
-  update: () => UpdateEngine;
+export interface BetterPwaRuntimeShape {
+  state: () => StateEngineAPI;
+  lifecycle: () => LifecycleEngineAPI;
+  permissions: () => PermissionEngineAPI;
+  update: () => UpdateEngineAPI;
   on<T extends LifecycleEvent>(type: T["type"], cb: LifecycleEventCallback<T>): Unsubscribe;
   use(plugin: BetterPwaPlugin): void;
   destroy(): Promise<void>;

@@ -38,7 +38,7 @@ class UpdateController {
   setStrategy(strategy: UpdateStrategy, options?: GradualRolloutOptions): void {
     this.#strategy = strategy;
     this.#rolloutOptions = options;
-    this.#log.step("set-strategy").info({ strategy, options });
+    better.log.info("updates:set-strategy", { strategy, options });
 
     if (strategy === "gradual" && options) {
       this.#checkGradualEligibility();
@@ -59,7 +59,7 @@ class UpdateController {
   /** Manually activate a waiting update */
   async activate(): Promise<void> {
     if (this.#updateState !== "WAITING") {
-      this.#log.step("activate-not-waiting").warn({ state: this.#updateState });
+      better.log.warn("updates:activate-not-waiting", { state: this.#updateState });
       return;
     }
 
@@ -78,10 +78,10 @@ class UpdateController {
       this.#updateState = "IDLE";
       this.#currentVersion = this.#waitingVersion ?? this.#currentVersion;
       this.#waitingVersion = null;
-      this.#log.step("activate-success").success({ version: this.#currentVersion });
+      better.log.info("updates:activate-success", { version: this.#currentVersion });
     } catch (error) {
       this.#updateState = "FAILED";
-      this.#log.step("activate-failed").error({ error });
+      better.log.error("updates:activate-failed", { error });
       // Rollback — stay on current version
       this.#updateState = "IDLE";
     }
@@ -123,7 +123,7 @@ class UpdateController {
       this.#waitingVersion = "pending";
       this.#updateState = "WAITING";
       this.#notifyListeners("update_available", this.#waitingVersion);
-      this.#log.step("update-found").info({ version: this.#waitingVersion });
+      better.log.info("updates:update-found", { version: this.#waitingVersion });
 
       // Auto-activate for hard strategy
       if (this.#strategy === "hard") {
@@ -139,10 +139,10 @@ class UpdateController {
     const hash = this.#hashString(seed + (globalThis.location.hostname ?? ""));
     const bucket = hash % 100;
     if (bucket >= rollout * 100) {
-      this.#log.step("gradual-excluded").info({ bucket, rollout });
+      better.log.info("updates:gradual-excluded", { bucket, rollout });
       // User excluded — defer update
     } else {
-      this.#log.step("gradual-included").info({ bucket, rollout });
+      better.log.info("updates:gradual-included", { bucket, rollout });
     }
   }
 
@@ -163,11 +163,11 @@ class UpdateController {
       // Check for update loops
       this.#updateCycleCount++;
       if (this.#updateCycleCount > MAX_UPDATE_CYCLES) {
-        this.#log.step("update-loop-detected").warn({ count: this.#updateCycleCount });
+        better.log.warn("updates:update-loop-detected", { count: this.#updateCycleCount });
         this.#updateCycleCount = 0;
       }
     } catch {
-      this.#log.step("update-check-failed").warn();
+      better.log.warn("updates:update-check-failed");
     }
   }
 
@@ -195,7 +195,7 @@ class UpdateController {
       try {
         cb(version);
       } catch (err) {
-        this.#log.step("notify-listener-error").warn({ error: err });
+        better.log.warn("updates:notify-listener-error", { error: err });
       }
     }
   }

@@ -13,12 +13,10 @@ import { UpdateController } from "../updates/controller.js";
 import { ColdStartEngine } from "../boot/cold-start.js";
 import { presets } from "../presets/index.js";
 import type {
-  BetterPwaRuntime,
   BetterPwaConfig,
   BetterPwaPlugin,
   LifecycleEvent,
   LifecycleEventCallback,
-  LifecycleEventType,
   Unsubscribe,
   PwaState,
   StateKeys,
@@ -31,7 +29,10 @@ import type {
   TransitionRecord,
 } from "../types.js";
 
-class BetterPwaRuntime implements BetterPwaRuntime {
+/**
+ * Runtime instance returned by createPwa().
+ */
+class BetterPwaRuntime {
   #config: BetterPwaConfig;
   #stateEngine: StateEngine;
   #lifecycleBus: LifecycleBus;
@@ -40,7 +41,6 @@ class BetterPwaRuntime implements BetterPwaRuntime {
   #coldStartEngine: ColdStartEngine;
   #plugins: BetterPwaPlugin[] = [];
   #destroyed = false;
-  #log = better.flow("better-pwa-runtime");
 
   constructor(config: BetterPwaConfig) {
     this.#config = { ...config };
@@ -49,10 +49,8 @@ class BetterPwaRuntime implements BetterPwaRuntime {
     this.#permissionEngine = new PermissionEngine();
     this.#updateController = new UpdateController();
     this.#coldStartEngine = new ColdStartEngine(config);
-
-    // Register default transitions
     this.#registerTransitions();
-    this.#log.step("init").info({ config });
+    better.log.info("better-pwa:init", { config });
   }
 
   /** Initialize the runtime (async setup) */
@@ -97,17 +95,17 @@ class BetterPwaRuntime implements BetterPwaRuntime {
       try {
         plugin.onInit?.(this);
       } catch (err) {
-        this.#log.step("plugin-init-error").warn({ plugin: plugin.name, error: err });
+        better.log.warn("better-pwa:plugin-init-error", { plugin: plugin.name, error: err });
       }
     }
 
-    this.#log.step("ready").success({ state: bootResult.state });
+    better.log.info("better-pwa:ready", { state: bootResult.state });
     return this;
   }
 
   // ─── State Engine API ───────────────────────────────────────────────────
 
-  state = (): BetterPwaRuntime["state"] extends () => infer R ? R : never => {
+  state = () => {
     const engine = this.#stateEngine;
     return {
       snapshot: (): Readonly<PwaState> => engine.snapshot(),
@@ -116,53 +114,45 @@ class BetterPwaRuntime implements BetterPwaRuntime {
       set: async <T extends StateKeys>(key: T, value: PwaState[T]): Promise<void> =>
         engine.set(key, value),
       reset: async (): Promise<void> => engine.reset(),
-    } as unknown as BetterPwaRuntime["state"] extends () => infer R ? R : never;
+    };
   };
 
   // ─── Lifecycle API ──────────────────────────────────────────────────────
 
-  lifecycle = (): {
-    state: () => AppState;
-    onTransition: (cb: (from: AppState, to: AppState, metadata: Record<string, unknown>) => void) => Unsubscribe;
-    blockedTransitions: () => TransitionRecord[];
-  } => {
+  lifecycle = () => {
     const bus = this.#lifecycleBus;
     return {
-      state: () => bus.state(),
-      onTransition: (cb) => bus.onTransition(cb),
-      blockedTransitions: () => bus.getBlockedTransitions(),
+      state: (): AppState => bus.state(),
+      onTransition: (cb: (from: AppState, to: AppState, metadata: Record<string, unknown>) => void): Unsubscribe =>
+        bus.onTransition(cb),
+      blockedTransitions: (): TransitionRecord[] => bus.getBlockedTransitions(),
     };
   };
 
   // ─── Permissions API ────────────────────────────────────────────────────
 
-  permissions = (): {
-    request: (permissions: string[], options?: PermissionRequestOptions) => Promise<PermissionResults>;
-    status: () => PermissionResults;
-    on: (event: "denied", cb: (permission: string, fallback: { show: (opts: Record<string, string>) => void }) => void) => Unsubscribe;
-  } => {
+  permissions = () => {
     const engine = this.#permissionEngine;
     return {
-      request: (perms, opts) => engine.request(perms, opts),
-      status: () => engine.status(),
-      on: (event, cb) => engine.on(event, cb),
+      request: (perms: string[], opts?: PermissionRequestOptions): Promise<PermissionResults> =>
+        engine.request(perms, opts),
+      status: (): PermissionResults => engine.status(),
+      on: (event: "denied", cb: (permission: string, fallback: { show: (opts: Record<string, string>) => void }) => void): Unsubscribe =>
+        engine.on(event, cb),
     };
   };
 
   // ─── Update API ─────────────────────────────────────────────────────────
 
-  update = (): {
-    setStrategy: (strategy: "soft" | "hard" | "gradual" | "on-reload", options?: GradualRolloutOptions) => void;
-    on: (event: "update_available", cb: (version: string) => void) => Unsubscribe;
-    activate: () => Promise<void>;
-    status: () => UpdateStatus;
-  } => {
+  update = () => {
     const controller = this.#updateController;
     return {
-      setStrategy: (s, o) => controller.setStrategy(s, o),
-      on: (e, cb) => controller.on(e, cb),
-      activate: () => controller.activate(),
-      status: () => controller.status(),
+      setStrategy: (s: "soft" | "hard" | "gradual" | "on-reload", o?: GradualRolloutOptions): void =>
+        controller.setStrategy(s, o),
+      on: (e: "update_available", cb: (version: string) => void): Unsubscribe =>
+        controller.on(e, cb),
+      activate: (): Promise<void> => controller.activate(),
+      status: (): UpdateStatus => controller.status(),
     };
   };
 
@@ -176,7 +166,7 @@ class BetterPwaRuntime implements BetterPwaRuntime {
 
   use(plugin: BetterPwaPlugin): void {
     this.#plugins.push(plugin);
-    this.#log.step("plugin-registered").info({ name: plugin.name, version: plugin.version });
+    better.log.info("better-pwa:plugin-registered", { name: plugin.name, version: plugin.version });
   }
 
   // ─── Cleanup ────────────────────────────────────────────────────────────
@@ -191,7 +181,7 @@ class BetterPwaRuntime implements BetterPwaRuntime {
     this.#updateController.destroy();
     this.#plugins = [];
 
-    this.#log.step("destroy").success();
+    better.log.info("better-pwa:destroyed");
   }
 
   // ─── Private ────────────────────────────────────────────────────────────
@@ -199,85 +189,41 @@ class BetterPwaRuntime implements BetterPwaRuntime {
   #registerTransitions(): void {
     const bus = this.#lifecycleBus;
 
-    // IDLE → BOOT
     bus.registerTransition({
-      from: "IDLE",
-      to: "BOOT",
-      guard: () => true,
-      action: async () => {},
-      onFail: () => "DEGRADED",
+      from: "IDLE", to: "BOOT",
+      guard: () => true, action: async () => {}, onFail: () => "DEGRADED",
     });
-
-    // BOOT → READY
     bus.registerTransition({
-      from: "BOOT",
-      to: "READY",
-      guard: () => true,
-      action: async () => {},
-      onFail: () => "DEGRADED",
+      from: "BOOT", to: "READY",
+      guard: () => true, action: async () => {}, onFail: () => "DEGRADED",
     });
-
-    // BOOT → DEGRADED (hydrate failure)
     bus.registerTransition({
-      from: "BOOT",
-      to: "DEGRADED",
-      guard: () => true,
-      action: async () => {},
-      onFail: () => "DEGRADED",
+      from: "BOOT", to: "DEGRADED",
+      guard: () => true, action: async () => {}, onFail: () => "DEGRADED",
     });
-
-    // READY → OFFLINE
     bus.registerTransition({
-      from: "READY",
-      to: "OFFLINE",
-      guard: (ctx) => ctx.state.isOffline,
-      action: async () => {},
-      onFail: () => "READY",
+      from: "READY", to: "OFFLINE",
+      guard: (ctx) => ctx.state.isOffline, action: async () => {}, onFail: () => "READY",
     });
-
-    // OFFLINE → SYNCING
     bus.registerTransition({
-      from: "OFFLINE",
-      to: "SYNCING",
-      guard: (ctx) => !ctx.state.isOffline,
-      action: async () => {},
-      onFail: () => "OFFLINE",
+      from: "OFFLINE", to: "SYNCING",
+      guard: (ctx) => !ctx.state.isOffline, action: async () => {}, onFail: () => "OFFLINE",
     });
-
-    // SYNCING → STABLE
     bus.registerTransition({
-      from: "SYNCING",
-      to: "STABLE",
-      guard: () => true,
-      action: async () => {},
-      onFail: () => "DEGRADED",
+      from: "SYNCING", to: "STABLE",
+      guard: () => true, action: async () => {}, onFail: () => "DEGRADED",
     });
-
-    // READY → UPDATING
     bus.registerTransition({
-      from: "READY",
-      to: "UPDATING",
-      guard: (ctx) => Boolean(ctx.state.hasUpdate),
-      action: async () => {},
-      onFail: () => "READY",
+      from: "READY", to: "UPDATING",
+      guard: (ctx) => Boolean(ctx.state.hasUpdate), action: async () => {}, onFail: () => "READY",
     });
-
-    // UPDATING → READY
     bus.registerTransition({
-      from: "UPDATING",
-      to: "READY",
-      guard: () => true,
-      action: async () => {},
-      onFail: () => "DEGRADED",
+      from: "UPDATING", to: "READY",
+      guard: () => true, action: async () => {}, onFail: () => "DEGRADED",
     });
-
-    // READY → STABLE
     bus.registerTransition({
-      from: "READY",
-      to: "STABLE",
-      guard: () => true,
-      action: async () => {},
-      onFail: () => "READY",
+      from: "READY", to: "STABLE",
+      guard: () => true, action: async () => {}, onFail: () => "READY",
     });
   }
 }
@@ -291,20 +237,13 @@ class BetterPwaRuntime implements BetterPwaRuntime {
  * ```
  */
 function createPwa(config: BetterPwaConfig): BetterPwaRuntime {
-  // Merge preset config if specified
   if (config.preset) {
-    const preset = presets[config.preset];
+    const preset = presets[config.preset as keyof typeof presets];
     if (preset) {
-      config = {
-        updateStrategy: preset.updateStrategy,
-        ...config,
-      };
+      config = { updateStrategy: preset.updateStrategy, ...config };
     }
   }
-
-  const runtime = new BetterPwaRuntime(config);
-  // Return proxy that auto-inits
-  return runtime;
+  return new BetterPwaRuntime(config);
 }
 
 export { BetterPwaRuntime, createPwa };

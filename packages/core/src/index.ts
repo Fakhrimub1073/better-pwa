@@ -5,9 +5,13 @@
  * permissions, updates, presets, and cold start strategy.
  */
 
-// Public API
-export { createPwa, BetterPwaRuntime } from "./runtime/index.js";
-export { StateEngine, getDefaultState } from "./state/engine.js";
+// Public API — runtime
+export { createPwa } from "./runtime/index.js";
+export type { BetterPwaRuntime, BetterPwaConfig } from "./runtime/index.js";
+
+// Public API — engines (for advanced users who need direct access)
+export { StateEngine } from "./state/engine.js";
+export { getDefaultState } from "./state/engine.js";
 export { LifecycleBus } from "./lifecycle/bus.js";
 export { registerServiceWorker, getSwRegistration } from "./lifecycle/sw-register.js";
 export { PermissionEngine } from "./permissions/orchestrator.js";
@@ -15,7 +19,7 @@ export { UpdateController } from "./updates/controller.js";
 export { ColdStartEngine } from "./boot/cold-start.js";
 export { presets, definePreset } from "./presets/index.js";
 
-// Types
+// Type exports
 export type {
   PwaState,
   StateDiff,
@@ -40,10 +44,8 @@ export type {
   PresetName,
   PresetConfig,
   BetterPwaPlugin,
-  StateEngine,
-  LifecycleEngine,
-  PermissionEngine,
-  UpdateEngine,
-  BetterPwaConfig,
-  BetterPwaRuntime,
+  StateEngineAPI,
+  LifecycleEngineAPI,
+  PermissionEngineAPI,
+  UpdateEngineAPI,
 } from "./types.js";

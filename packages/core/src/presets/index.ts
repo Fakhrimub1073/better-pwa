@@ -58,10 +58,10 @@ const content: PresetConfig = {
   },
 };
 
-const presets: Record<PresetName, PresetConfig> = {
+const presets: Record<"saas" | "ecommerce" | "offline-first" | "content", PresetConfig> = {
   saas,
   ecommerce,
-  offlineFirst,
+  "offline-first": offlineFirst,
   content,
 };
 

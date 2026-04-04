@@ -1,0 +1,8 @@
+{
+  "permissions": {
+    "allow": [
+      "Read(C:\\Users\\0xy\\Desktop\\better-logger/**)"
+    ]
+  },
+  "$version": 3
+}

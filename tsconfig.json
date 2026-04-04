@@ -1,0 +1,35 @@
+{
+  "compilerOptions": {
+    "target": "ES2022",
+    "module": "ESNext",
+    "moduleResolution": "bundler",
+    "lib": ["ES2022", "DOM", "DOM.Iterable", "WebWorker"],
+    "declaration": true,
+    "declarationMap": true,
+    "sourceMap": true,
+    "strict": true,
+    "noImplicitAny": true,
+    "strictNullChecks": true,
+    "noImplicitReturns": true,
+    "noFallthroughCasesInSwitch": true,
+    "noUncheckedIndexedAccess": true,
+    "exactOptionalPropertyTypes": false,
+    "esModuleInterop": true,
+    "forceConsistentCasingInFileNames": true,
+    "skipLibCheck": true,
+    "resolveJsonModule": true,
+    "isolatedModules": true,
+    "verbatimModuleSyntax": true,
+    "outDir": "dist",
+    "rootDir": "src",
+    "baseUrl": ".",
+    "paths": {
+      "@better-pwa/core": ["packages/core/src/index.ts"],
+      "@better-pwa/offline": ["packages/offline/src/index.ts"],
+      "@better-pwa/storage": ["packages/storage/src/index.ts"],
+      "@better-pwa/sw-builder": ["packages/sw-builder/src/index.ts"],
+      "@better-pwa/manifest": ["packages/manifest/src/index.ts"]
+    }
+  },
+  "exclude": ["node_modules", "dist", "dist-testing", "**/*.test.ts", "**/*.test.tsx"]
+}

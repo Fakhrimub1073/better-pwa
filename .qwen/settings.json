@@ -7,7 +7,9 @@
       "Bash(r *)",
       "Bash(@findstr *)",
       "Bash(type *)",
-      "Bash(start *)"
+      "Bash(start *)",
+      "Bash(taskkill *)",
+      "Bash(python *)"
     ]
   },
   "$version": 3

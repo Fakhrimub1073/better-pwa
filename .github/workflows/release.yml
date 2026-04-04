@@ -10,29 +10,25 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      - uses: pnpm/action-setup@v4
-        with:
-          version: 9
-
       - uses: actions/setup-node@v4
         with:
           node-version: 22
           registry-url: 'https://registry.npmjs.org'
-          cache: 'pnpm'
+          cache: 'npm'
 
       - name: Install dependencies
-        run: pnpm install --frozen-lockfile
+        run: npm install
 
       - name: Build all packages
-        run: pnpm build
+        run: npm run build
 
       - name: Final size check
-        run: pnpm size
+        run: npm run size
 
       - name: Final test pass
-        run: pnpm test
+        run: npm test
 
-      - name: Publish changed packages
+      - name: Publish all packages
         run: |
           for pkg in packages/*/; do
             if [ -f "$pkg/package.json" ]; then

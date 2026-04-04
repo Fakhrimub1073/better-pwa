@@ -2,12 +2,15 @@
  * @better-pwa/adapter-react — React hooks for better-pwa.
  * Phase 1: Stub. Full implementation in v0.3.
  */
-import type { BetterPwaRuntime } from "@better-pwa/core";
+export interface PwaStateShape {
+  isOffline: boolean;
+  isInstalled: boolean;
+}
 
-export function usePwaState(_runtime: BetterPwaRuntime) {
+export function usePwaState(): PwaStateShape {
   return { isOffline: false, isInstalled: false };
 }
 
-export function usePwaUpdate(_runtime: BetterPwaRuntime) {
+export function usePwaUpdate() {
   return { activate: async () => {} };
 }

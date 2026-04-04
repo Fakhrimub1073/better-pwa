@@ -23,6 +23,7 @@ export default [
       "scripts/release.js",
       "scripts/check-sizes.js",
       "scripts/new-changeset.js",
+      "coverage/**",
     ],
   },
 ];

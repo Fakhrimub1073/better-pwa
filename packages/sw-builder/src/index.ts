@@ -222,4 +222,3 @@ self.addEventListener('message', (event) => {
 }
 
 export { generateSw, buildSw, DEFAULT_CONFIG };
-export type { SwBuilderConfig };

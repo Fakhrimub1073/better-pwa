@@ -19,9 +19,6 @@
     "test": "vitest run --coverage",
     "lint": "eslint src/ --fix"
   },
-  "peerDependencies": {
-    "@better-pwa/core": ">=0.1.0"
-  },
   "devDependencies": {
     "typescript": "^5.7",
     "tsup": "^8.0"

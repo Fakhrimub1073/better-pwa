@@ -1,7 +1,8 @@
 {
   "permissions": {
     "allow": [
-      "Read(C:\\Users\\0xy\\Desktop\\better-logger/**)"
+      "Read(C:\\Users\\0xy\\Desktop\\better-logger/**)",
+      "Bash(pnpm install)"
     ]
   },
   "$version": 3

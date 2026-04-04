@@ -22,11 +22,6 @@
     "test": "vitest run --coverage",
     "lint": "eslint src/ --fix"
   },
-  "dependencies": {
-    "@better-pwa/core": "workspace:*",
-    "@better-pwa/sw-builder": "workspace:*",
-    "@better-pwa/manifest": "workspace:*"
-  },
   "devDependencies": {
     "typescript": "^5.7",
     "tsup": "^8.0"

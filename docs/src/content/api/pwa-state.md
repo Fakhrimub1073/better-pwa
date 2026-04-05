@@ -4,10 +4,10 @@ title: pwa.state()
 description: Reactive state engine — single source of truth for all PWA environment state.
 prev:
   title: "createPwa()"
-  path: "/api/createPwa/"
+  path: "/content/api/createPwa/"
 next:
   title: "pwa.update"
-  path: "/api/pwa-update/"
+  path: "/content/api/pwa-update/"
 ---
 
 # pwa.state()

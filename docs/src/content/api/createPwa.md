@@ -4,10 +4,10 @@ title: createPwa()
 description: Create and initialize the better-pwa runtime. The single entry point.
 prev:
   title: "Mental Model"
-  path: "/getting-started/mental-model/"
+  path: "/content/getting-started/mental-model/"
 next:
   title: "pwa.state()"
-  path: "/api/pwa-state/"
+  path: "/content/api/pwa-state/"
 ---
 
 # createPwa(config)

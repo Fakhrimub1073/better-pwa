@@ -4,10 +4,10 @@ title: Mental Model
 description: Understand how better-pwa works — one state, one lifecycle, everything derived.
 prev:
   title: "Installation"
-  path: "/getting-started/installation/"
+  path: "/content/getting-started/installation/"
 next:
   title: "createPwa()"
-  path: "/api/createPwa/"
+  path: "/content/api/createPwa/"
 ---
 
 # Mental Model

@@ -4,10 +4,10 @@ title: Installation
 description: Install better-pwa via npm, configure your project, and verify the setup.
 prev:
   title: "Quick Start"
-  path: "/getting-started/quick-start/"
+  path: "/content/getting-started/quick-start/"
 next:
   title: "Mental Model"
-  path: "/getting-started/mental-model/"
+  path: "/content/getting-started/mental-model/"
 ---
 
 # Installation

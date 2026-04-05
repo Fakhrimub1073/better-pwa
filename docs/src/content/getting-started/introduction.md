@@ -5,7 +5,7 @@ description: What is better-pwa and why does it exist?
 prev: null
 next:
   title: "Quick Start"
-  path: "/getting-started/quick-start/"
+  path: "/content/getting-started/quick-start/"
 ---
 
 # Introduction

@@ -4,10 +4,10 @@ title: Quick Start
 description: Get better-pwa running in your project in under 5 minutes.
 prev:
   title: "Introduction"
-  path: "/getting-started/introduction/"
+  path: "/content/getting-started/introduction/"
 next:
   title: "Installation"
-  path: "/getting-started/installation/"
+  path: "/content/getting-started/installation/"
 ---
 
 # Quick Start

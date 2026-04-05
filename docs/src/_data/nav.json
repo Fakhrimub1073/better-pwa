@@ -19,17 +19,9 @@
       ]
     },
     {
-      "title": "Guides",
-      "items": [
-        { "title": "Offline-First App", "path": "/guides/offline-first/" },
-        { "title": "React Integration", "path": "/guides/react/" }
-      ]
-    },
-    {
       "title": "Guarantees",
       "items": [
-        { "title": "Overview", "path": "/content/guarantees/" },
-        { "title": "Data Durability", "path": "/guarantees/data-durability/" }
+        { "title": "Overview", "path": "/content/guarantees/" }
       ]
     }
   ]

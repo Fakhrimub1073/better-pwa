@@ -4,10 +4,10 @@ title: pwa.update
 description: "Declarative service worker update strategies"
 prev:
   title: "pwa.state()"
-  path: "/api/pwa-state/"
+  path: "/content/api/pwa-state/"
 next:
   title: "pwa.permissions"
-  path: "/api/pwa-permissions/"
+  path: "/content/api/pwa-permissions/"
 ---
 
 # pwa.update

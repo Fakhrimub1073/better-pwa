@@ -4,7 +4,7 @@ title: pwa.permissions
 description: "Batched, state-tracked permission management"
 prev:
   title: "pwa.update"
-  path: "/api/pwa-update/"
+  path: "/content/api/pwa-update/"
 next: null
 ---
 

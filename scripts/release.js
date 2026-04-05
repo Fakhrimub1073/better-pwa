@@ -2,10 +2,10 @@
 /**
  * release.js — One-command release pipeline.
  *
- * Lint → Test → Build → Size → Parse changesets → Bump → Changelog → Commit → Tag → Publish → Verify
+ * Lint → Test → Build → Size → Parse changesets → Bump → Changelog → Commit → Tag → Publish
  */
 import { execSync } from 'node:child_process';
-import { readFileSync, writeFileSync, existsSync, readdirSync, unlinkSync, statSync } from 'node:fs';
+import { readFileSync, writeFileSync, existsSync, readdirSync, unlinkSync } from 'node:fs';
 import { join, dirname } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
@@ -14,14 +14,6 @@ const root = join(__dirname, '..');
 const changesDir = join(root, '.changesets');
 const packagesDir = join(root, 'packages');
 const DRY_RUN = process.argv.includes('--dry-run');
-
-const BUDGETS = {
-  '@better-pwa/core': 15360,
-  '@better-pwa/offline': 8192,
-  '@better-pwa/storage': 5120,
-  '@better-pwa/sw-builder': 51200,
-  '@better-pwa/manifest': 3072,
-};
 
 const PKG_DIRS = {
   '@better-pwa/core': 'core',
@@ -52,24 +44,18 @@ function parseChangesets() {
 
   for (const file of files) {
     const content = readFileSync(join(changesDir, file), 'utf-8');
-    const lines = content.split('\n');
-    const frontmatter = [];
-    let inFm = false;
-    let fmEnded = false;
+    const parts = content.split(/^---$/m);
+    // parts[0] = before frontmatter (usually empty)
+    // parts[1] = frontmatter YAML
+    // parts[2+] = content/summary
 
-    for (const line of lines) {
-      if (line === '---') {
-        if (!inFm) { inFm = true; continue; }
-        if (!fmEnded) { fmEnded = true; break; }
-      }
-      if (inFm && !fmEnded) frontmatter.push(line);
-    }
+    if (parts.length < 3) continue; // Not a valid changeset
 
-    const summaryLines = lines.slice(lines.lastIndexOf('---', lines.indexOf('---', 1) + 1) + 1).filter((l) => l.trim());
-    const summary = summaryLines.join('\n').trim();
+    const fmLines = parts[1].trim().split('\n');
+    const summary = parts.slice(2).join('---').trim();
 
-    for (const fmLine of frontmatter) {
-      const match = fmLine.match(/^"?([^"]+)"?\s*:\s*(\w+)/);
+    for (const line of fmLines) {
+      const match = line.match(/^"?([^"]+)"?\s*:\s*(\w+)/);
       if (match) {
         const [, pkgName, bumpType] = match;
         const pkg = pkgName.trim();
@@ -135,9 +121,7 @@ async function main() {
 
   const bumpPlan = {};
   for (const [pkgName, info] of Object.entries(packages)) {
-    // Map CLI display name to actual package name
-    const lookupName = pkgName.replace('better-pwa (CLI)', 'better-pwa');
-    const dir = PKG_DIRS[lookupName];
+    const dir = PKG_DIRS[pkgName];
     if (!dir) {
       console.log(`⏭️  ${pkgName}: no matching package dir (skipped)`);
       continue;
@@ -146,8 +130,8 @@ async function main() {
     if (!existsSync(pkgPath)) continue;
     const pkg = JSON.parse(readFileSync(pkgPath, 'utf-8'));
     const newVersion = bumpVersion(pkg.version, info.bump);
-    bumpPlan[lookupName] = { dir, oldVersion: pkg.version, newVersion, bump: info.bump, entries: info.entries };
-    console.log(`  ${lookupName}: ${pkg.version} → ${newVersion} (${info.bump})`);
+    bumpPlan[pkgName] = { dir, oldVersion: pkg.version, newVersion, bump: info.bump, entries: info.entries };
+    console.log(`  ${pkgName}: ${pkg.version} → ${newVersion} (${info.bump})`);
   }
 
   if (DRY_RUN) {
@@ -180,7 +164,8 @@ async function main() {
     changelogEntries.push('');
 
     for (const entry of plan.entries) {
-      unlinkSync(join(changesDir, entry.file));
+      const filePath = join(changesDir, entry.file);
+      if (existsSync(filePath)) unlinkSync(filePath);
     }
   }
 
@@ -216,8 +201,8 @@ async function main() {
   for (const [pkgName] of Object.entries(bumpPlan)) {
     console.log(`  Verifying ${pkgName}...`);
     const tmpDir = join(root, 'tmp', `_verify_${Date.now()}`);
-    run(`mkdir -p ${tmpDir} && cd ${tmpDir} && npm init -y && npm install ${pkgName}`);
-    run(`rm -rf ${tmpDir}`);
+    run(`mkdir -p "${tmpDir}" && cd "${tmpDir}" && npm init -y && npm install ${pkgName}`);
+    run(`rm -rf "${tmpDir}"`);
   }
 
   console.log(`\n✅ Release complete. Published ${Object.keys(bumpPlan).length} package(s).`);

